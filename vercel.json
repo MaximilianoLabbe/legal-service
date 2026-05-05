@@ -3,23 +3,5 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "nestjs",
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "api/index.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/api"
-    }
-  ]
+  "public": false
 }
