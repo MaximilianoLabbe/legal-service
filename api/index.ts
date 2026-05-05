@@ -3,12 +3,16 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from '../src/app.module';
 
-let app: any;
+let cachedApp: any;
 
-async function getApp() {
-  if (app) return app;
+async function bootstrap() {
+  if (cachedApp) {
+    return cachedApp;
+  }
 
-  app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: console,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -34,10 +38,17 @@ async function getApp() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
 
+  await app.init();
+  cachedApp = app;
   return app;
 }
 
 export default async (req: any, res: any) => {
-  const app = await getApp();
-  return app.getHttpAdapter().getInstance()(req, res);
+  try {
+    const app = await bootstrap();
+    app.getHttpAdapter().getInstance()(req, res);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
