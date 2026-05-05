@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # NestJS Application (conecta a Neon)
+  app:
+    build: .
+    container_name: legal_management_api
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://neondb_owner:npg_0dLyhFzbgfY7@ep-still-bird-aqmr2106-pooler.c-8.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require
+      JWT_SECRET: your-secret-key-change-in-production
+      JWT_EXPIRATION: 24h
+      LOG_LEVEL: debug
+    restart: unless-stopped
+
+  # PostgreSQL Database (LOCAL - solo para desarrollo/testing)
+  postgres:
+    image: postgres:15-alpine
+    container_name: legal_management_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: legal_management
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    profiles:
+      - local-dev
+
+  # PgAdmin (Herramienta de administración PostgreSQL - solo local)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: legal_management_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: change-me-in-production
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    profiles:
+      - local-dev
+
+  # Redis (para caché y sesiones - opcional)
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
+    profiles:
+      - local-dev
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  redis_data:
