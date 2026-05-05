@@ -8,6 +8,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
+  // CORS first
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,13 +26,11 @@ async function bootstrap() {
     }),
   );
 
-  // CORS
-  app.enableCors({
-    origin: true,
-    credentials: true,
-  });
+  // Global prefix FIRST (before creating Swagger document)
+  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
+  app.setGlobalPrefix(apiPrefix);
 
-  // Swagger configuration (PRIMERO, antes del prefijo global)
+  // Swagger configuration AFTER global prefix
   const config = new DocumentBuilder()
     .setTitle('Legal Management System API')
     .setDescription(
@@ -44,22 +48,18 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/swagger', app, document, {
+  SwaggerModule.setup('swagger', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
       displayOperationId: true,
     },
   });
 
-  // Global prefix (DESPUÉS de Swagger)
-  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
-  app.setGlobalPrefix(apiPrefix);
-
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port, '0.0.0.0');
 
   console.log(`✅ Application is running on: http://0.0.0.0:${port}/${apiPrefix}`);
-  console.log(`📚 Swagger documentation: http://0.0.0.0:${port}/api/swagger`);
+  console.log(`📚 Swagger documentation: http://0.0.0.0:${port}/${apiPrefix}/swagger`);
 }
 
 bootstrap().catch((err) => {
