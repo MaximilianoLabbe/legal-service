@@ -26,18 +26,13 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global prefix
-  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
-  app.setGlobalPrefix(apiPrefix);
-
-  // Swagger configuration (DESPUÉS del prefijo global para que esté en /api/swagger)
+  // Swagger configuration (PRIMERO, antes del prefijo global)
   const config = new DocumentBuilder()
     .setTitle('Legal Management System API')
     .setDescription(
       'API profesional para gestión de casos legales y clientes con autenticación JWT',
     )
     .setVersion('1.0.0')
-    .setBasePath(apiPrefix)
     .addTag('Auth', 'Autenticación y gestión de sesiones')
     .addTag('Users', 'Gestión de usuarios del sistema')
     .addTag('Clients', 'Gestión de clientes')
@@ -49,24 +44,22 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document, {
+  SwaggerModule.setup('api/swagger', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
       displayOperationId: true,
-      urls: [
-        {
-          url: `/`,
-          name: 'Development',
-        },
-      ],
     },
   });
+
+  // Global prefix (DESPUÉS de Swagger)
+  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
+  app.setGlobalPrefix(apiPrefix);
 
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port, '0.0.0.0');
 
   console.log(`✅ Application is running on: http://0.0.0.0:${port}/${apiPrefix}`);
-  console.log(`📚 Swagger documentation: http://0.0.0.0:${port}/${apiPrefix}/swagger`);
+  console.log(`📚 Swagger documentation: http://0.0.0.0:${port}/api/swagger`);
 }
 
 bootstrap().catch((err) => {
