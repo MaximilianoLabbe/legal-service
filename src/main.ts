@@ -20,16 +20,13 @@ async function bootstrap() {
     }),
   );
 
-  // Global prefix
-  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
-  app.setGlobalPrefix(apiPrefix);
-
-  // CORS
+  // CORS (debe estar antes de Swagger)
   app.enableCors({
     origin: true,
     credentials: true,
   });
-// Swagger configuration
+
+  // Swagger configuration (ANTES del prefijo global)
   const config = new DocumentBuilder()
     .setTitle('Legal Management System API')
     .setDescription(
@@ -53,6 +50,10 @@ async function bootstrap() {
       displayOperationId: true,
     },
   });
+
+  // Global prefix (después de Swagger)
+  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
+  app.setGlobalPrefix(apiPrefix);
 
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port, '0.0.0.0');
