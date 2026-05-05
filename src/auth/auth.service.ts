@@ -83,7 +83,7 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.get<string>('jwt.refreshExpiresIn') || '7d',
-    });
+    } as any);
 
     this.logger.log(`User logged in: ${email}`);
 
