@@ -28,7 +28,7 @@ async function createApp() {
   );
 
   // Global prefix
-  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
+  const apiPrefix = configService.get('API_PREFIX') || 'api';
   app.setGlobalPrefix(apiPrefix);
 
   // CORS
