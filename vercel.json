@@ -1,16 +1,15 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": ".vercel/output",
+  "outputDirectory": "dist",
   "framework": "nestjs",
   "env": {
     "NODE_ENV": "production"
   },
   "functions": {
     "api/index.ts": {
-      "runtime": "nodejs18.x",
-      "memory": 1024,
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "rewrites": [
