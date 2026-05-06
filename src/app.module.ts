@@ -6,7 +6,6 @@ import { ClientsModule } from './clients/clients.module';
 import { CasesModule } from './cases/cases.module';
 import { FilesModule } from './files/files.module';
 import { TasksModule } from './tasks/tasks.module';
-import { GoogleDriveModule } from './google-drive/google-drive.module';
 import { TypeOrmConfigModule } from './database/typeorm-config.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -27,14 +26,13 @@ import { SpaFallbackMiddleware } from './common/middleware/spa-fallback.middlewa
     CasesModule,
     FilesModule,
     TasksModule,
-    GoogleDriveModule,
   ],
   controllers: [AppController],
   providers: [AppService],
-})implements NestModule {
+})
+export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Aplicar el middleware SPA a todas las rutas
     consumer.apply(SpaFallbackMiddleware).forRoutes('*');
   }
-
-export class AppModule {}
+}
