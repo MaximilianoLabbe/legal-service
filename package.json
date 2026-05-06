@@ -8,7 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "postbuild": "copyfiles -u 1 'public/**/*' dist/ || true",
+    "postbuild": "node scripts/copy-public.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -58,6 +58,7 @@
     "@types/uuid": "^9.0.6",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.49.0",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
