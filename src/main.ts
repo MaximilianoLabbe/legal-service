@@ -1,11 +1,13 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, NestApplicationOptions } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import * as path from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
 
   // CORS first
@@ -29,6 +31,12 @@ async function bootstrap() {
   // Global prefix FIRST (before creating Swagger document)
   const apiPrefix = configService.get<string>('API_PREFIX', 'api');
   app.setGlobalPrefix(apiPrefix);
+
+  // Servir archivos estáticos del frontend (build de React, Vue, Angular, etc)
+  const publicPath = path.join(process.cwd(), 'public');
+  app.useStaticAssets(publicPath, {
+    prefix: '/',
+  });
 
   // Swagger configuration AFTER global prefix
   const config = new DocumentBuilder()

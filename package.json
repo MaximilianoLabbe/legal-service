@@ -8,6 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
+    "postbuild": "copyfiles -u 1 'public/**/*' dist/ || true",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -68,6 +69,11 @@
     "typescript": "^5.2.2",
     "webpack": "^5.106.2"
   },
+  "files": [
+    "dist",
+    "public",
+    "package.json"
+  ],
   "jest": {
     "moduleFileExtensions": [
       "js",
