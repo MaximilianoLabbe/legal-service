@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -10,7 +10,6 @@ import { TypeOrmConfigModule } from './database/typeorm-config.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import configuration from './config/configuration';
-import { SpaFallbackMiddleware } from './common/middleware/spa-fallback.middleware';
 
 @Module({
   imports: [
@@ -30,9 +29,4 @@ import { SpaFallbackMiddleware } from './common/middleware/spa-fallback.middlewa
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    // Aplicar el middleware SPA a todas las rutas
-    consumer.apply(SpaFallbackMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}

@@ -5,6 +5,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
+import * as express from 'express';
+import { Request, Response, NextFunction } from 'express';
+import * as fs from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -15,6 +18,54 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
+
+  // ========== MIDDLEWARE SPA FALLBACK - EJECUTA PRIMERO ==========
+  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
+  const publicPath = path.join(process.cwd(), 'public');
+
+  // Este middleware Express se ejecuta ANTES de que NestJS maneje las rutas
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const { path: reqPath } = req;
+
+    // 1. Si es API, dejar pasar a NestJS
+    if (reqPath.startsWith(`/${apiPrefix}`)) {
+      return next();
+    }
+
+    // 2. Si es Swagger o documentación especial
+    if (reqPath.startsWith('/swagger') || reqPath === '/favicon.ico') {
+      return next();
+    }
+
+    // 3. Si el archivo existe como archivo estático, servirlo
+    const filePath = path.join(publicPath, reqPath.split('?')[0]);
+    try {
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        return next();
+      }
+    } catch (error) {
+      // Continuar si hay error
+    }
+
+    // 4. Para todo lo demás (rutas SPA), servir index.html
+    const indexPath = path.join(publicPath, 'index.html');
+    try {
+      if (fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+      }
+    } catch (error) {
+      console.error('Error sirviendo index.html:', error.message);
+    }
+
+    // Si falla todo, dejar pasar a NestJS
+    next();
+  });
+
+  // Servir archivos estáticos después del middleware SPA
+  app.use(express.static(publicPath, {
+    maxAge: '1d',
+    etag: false,
+  }));
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -28,17 +79,8 @@ async function bootstrap() {
     }),
   );
 
-  // Global prefix FIRST (before creating Swagger document)
-  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
+  // Set global prefix AFTER middleware
   app.setGlobalPrefix(apiPrefix);
-
-  // Servir archivos estáticos del frontend (build de React, Vue, Angular, etc)
-  const publicPath = path.join(process.cwd(), 'public');
-  app.useStaticAssets(publicPath, {
-    prefix: '/',
-  });
-
-  // Swagger configuration AFTER global prefix
   const config = new DocumentBuilder()
     .setTitle('Legal Management System API')
     .setDescription(
